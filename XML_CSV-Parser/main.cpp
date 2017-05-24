@@ -10,6 +10,7 @@ void GenerateXML(ofstream &, string, string, string, string, string);
 void GenerateCSV(ofstream &, string, string, string, string, string);
 void XMLtoCSV(string, string);
 void CSVtoXML(string, string);
+int FindNthChar(string, char, int);
 
 int main() {
 
@@ -17,7 +18,7 @@ int main() {
 
 	while (choice != 4) {
 
-		//system("cls");
+		system("cls");
 		cout << "Welcome to the XML parser\n1. Input information and genrate both XML and CSV files\n2. Convert XML to CSV\n3. Convert CSV to XML\n4. Quit\nOption: ";
 		cin >> choice;
 
@@ -94,36 +95,40 @@ void FillInformation() {
 
 	int index = 0;
 
-	for (int i = 0; i < 5; i++) {
+	//for (int i = 0; i < 5; i++) {
 
-		cout << "Input the game's name: ";
-		getline(cin, game);
-		cin.clear();
+	cout << "Input the game's name: ";
+	getline(cin, game);
+	cin.clear();
 
-		cout << "Input the game's genre: ";
-		getline(cin, genre);
-		cin.clear();
+	cout << "Input the game's genre: ";
+	getline(cin, genre);
+	cin.clear();
 
-		cout << "Input the game's platform: ";
-		getline(cin, platform);
-		cin.clear();
+	cout << "Input the game's platform: ";
+	getline(cin, platform);
+	cin.clear();
 
-		cout << "Input the game's release date: ";
-		getline(cin, releaseDate);
-		cin.clear();
+	cout << "Input the game's release date: ";
+	getline(cin, releaseDate);
+	cin.clear();
 
-		cout << "Input the game's developer: ";
-		getline(cin, developer);
-		cin.clear();
+	cout << "Input the game's developer: ";
+	getline(cin, developer);
+	cin.clear();
 
-		GenerateXML(xmlFile, game, genre, platform, releaseDate, developer);
-		GenerateCSV(csvFile, game, genre, platform, releaseDate, developer);
+	GenerateXML(xmlFile, game, genre, platform, releaseDate, developer);
+	GenerateCSV(csvFile, game, genre, platform, releaseDate, developer);
 
-	}
+	//}
 
 	xmlFile << "<\/games>";
 	xmlFile.close();
 	csvFile.close();
+
+	cout << endl << "Successfully generated \"xmlFile.xml\" and \"csvFile.csv\" files!";
+
+	cin.ignore(1000, '\n');
 
 }
 
@@ -244,7 +249,110 @@ void XMLtoCSV(string source, string dest) {
 
 void CSVtoXML(string source, string dest) {
 
-	ofstream xmlFile;
-	xmlFile.open(dest);
+	ifstream sourceFile;
+	sourceFile.open(source);
+
+	string line = "";
+
+	if (sourceFile) {
+
+		cout << endl << "Generating " << dest << endl << endl;
+
+		ofstream xmlFile;
+		xmlFile.open(dest);
+
+		xmlFile << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
+		xmlFile << "<games>" << endl;
+
+		while (getline(sourceFile, line)) {
+
+			cout << "Line to read: " << line << endl;
+
+			if (line.find_first_of('\"') != -1) {
+
+				xmlFile << "\t<game>" << endl;
+
+				for (int i = 0; i < 5; i++) {
+
+					int firstQuotationMarkPosition = FindNthChar(line, '\"', 1);
+					string afterQuotationMark = line.substr(firstQuotationMarkPosition + 1, line.length());
+
+					int secondQuotationMarkPosition = FindNthChar(afterQuotationMark, '\"', 1);
+					string afterSecondQuotationMark = afterQuotationMark.substr(0, secondQuotationMarkPosition);
+
+					switch (i) {
+						case 0:
+						{
+							xmlFile << "\t\t<name>" << afterSecondQuotationMark << "<\/name>" << endl;
+						}
+						break;
+						case 1:
+						{
+							xmlFile << "\t\t<genre>" << afterSecondQuotationMark << "<\/genre>" << endl;
+						}
+						break;
+						case 2:
+						{
+							xmlFile << "\t\t<platform>" << afterSecondQuotationMark << "<\/platform>" << endl;
+						}
+						break;
+						case 3:
+						{
+							xmlFile << "\t\t<releaseDate>" << afterSecondQuotationMark << "<\/releaseDate>" << endl;
+						}
+						break;
+						case 4:
+						default:
+						{
+							xmlFile << "\t\t<developer>" << afterSecondQuotationMark << "<\/developer>" << endl;
+						}
+						break;
+					}
+
+					cout << "Resulting string: " << afterSecondQuotationMark << endl;
+
+					line = line.substr(secondQuotationMarkPosition, line.length());
+					int thirdQuotationMarkPosition = FindNthChar(line, '\"', 2);
+					line = line.substr(thirdQuotationMarkPosition, line.length());
+
+				} // for loop
+
+				xmlFile << "\t</game>" << endl;
+
+			} // if
+
+		} // while
+
+		xmlFile << "<\/games>";
+
+		cout << "Parsing of " + source + " to " + dest + " 100% successful!";
+
+	}
+	else {
+
+		cout << "File could not be found. Perhaps try again?";
+
+	}
+
+	cin.ignore(1000, '\n');
+
+}
+
+int FindNthChar(string s, char c, int n) {
+
+	int index = 0;
+
+	for (int i = 0; i < s.length(); i++) {
+
+		if (s[i] == c) {
+			index++;
+			if (index == n) {
+				return i;
+			}
+		}
+
+	}
+
+	return 0;
 
 }
