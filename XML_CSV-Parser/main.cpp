@@ -10,7 +10,10 @@ void GenerateXML(ofstream &, string, string, string, string, string);
 void GenerateCSV(ofstream &, string, string, string, string, string);
 void XMLtoCSV(string, string);
 void CSVtoXML(string, string);
+
+int CharCount(string, char);
 int FindNthChar(string, char, int);
+void Replace(string&, char, char);
 
 int main() {
 
@@ -93,36 +96,56 @@ void FillInformation() {
 	string xmlLine, game, genre, platform, releaseDate, developer;
 	string csvLine = "";
 
-	int index = 0;
+	bool fillingInformation = true;
 
-	//for (int i = 0; i < 5; i++) {
+	do {
 
-	cout << "Input the game's name: ";
-	getline(cin, game);
-	cin.clear();
+		cout << "Input the game's name: ";
+		getline(cin, game);
+		cin.clear();
 
-	cout << "Input the game's genre: ";
-	getline(cin, genre);
-	cin.clear();
+		cout << "Input the game's genre: ";
+		getline(cin, genre);
+		cin.clear();
 
-	cout << "Input the game's platform: ";
-	getline(cin, platform);
-	cin.clear();
+		cout << "Input the game's platform: ";
+		getline(cin, platform);
+		cin.clear();
 
-	cout << "Input the game's release date: ";
-	getline(cin, releaseDate);
-	cin.clear();
+		cout << "Input the game's release date: ";
+		getline(cin, releaseDate);
+		cin.clear();
 
-	cout << "Input the game's developer: ";
-	getline(cin, developer);
-	cin.clear();
+		cout << "Input the game's developer: ";
+		getline(cin, developer);
+		cin.clear();
 
-	GenerateXML(xmlFile, game, genre, platform, releaseDate, developer);
-	GenerateCSV(csvFile, game, genre, platform, releaseDate, developer);
+		GenerateXML(xmlFile, game, genre, platform, releaseDate, developer);
+		GenerateCSV(csvFile, game, genre, platform, releaseDate, developer);
 
-	//}
+		while (true) {
 
-	xmlFile << "<\/games>";
+			char choice = '\0';
+			cout << "\nInput another game? (y/n)> ";
+			cin >> choice;
+			if (choice == 'Y' || choice == 'y') {
+				break;
+			}
+			else {
+				if (choice == 'N' || choice == 'n') {
+					fillingInformation = false;
+					xmlFile << "<\/games>";
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+
+		}
+
+	} while (fillingInformation);
+
 	xmlFile.close();
 	csvFile.close();
 
@@ -134,7 +157,8 @@ void FillInformation() {
 
 void GenerateXML(ofstream &xmlFile, string game, string genre, string platform, string releaseDate, string developer) {
 
-	xmlFile << "\t<game>\n\t\t<name>" << game << "<\/name>" << endl;
+	xmlFile << "\t<game>" << endl;
+	xmlFile << "\t\t<title>" << game << "<\ / title>" << endl;
 	xmlFile << "\t\t<genre>" << genre << "<\/genre>" << endl;
 	xmlFile << "\t\t<platform>" << platform << "<\/platform>" << endl;
 	xmlFile << "\t\t<releaseDate>" << releaseDate << "<\/releaseDate>" << endl;
@@ -145,7 +169,7 @@ void GenerateXML(ofstream &xmlFile, string game, string genre, string platform, 
 
 void GenerateCSV(ofstream &csvFile, string game, string genre, string platform, string releaseDate, string developer) {
 
-	csvFile << "\"" << game << "\", \"" << genre << "\", \"" << platform << "\", \"" << releaseDate << "\", \"" << developer << "\"" << endl;
+	csvFile << game << ", " << genre << ", " << platform << ", " << releaseDate << ", " << developer << endl;
 
 }
 
@@ -164,18 +188,54 @@ void XMLtoCSV(string source, string dest) {
 		csvFile.open(dest);
 		csvFile << "Game name, Genre, Platform, Release date, Developer" << endl;
 
+		int lineIndex = 0;
+
 		while (getline(sourceFile, line)) {
 
-			if (line.find("<name>") != -1) {
+			if ((CharCount(line, '<') == 2) && (CharCount(line, '>') == 2)) {
 
-				int startIndex = line.find("<name>") + 4 + 2;
+				int entryPoint = line.find_first_of('<');
+				int lastEntryPoint = line.find_last_of('>');
+
+				// Find the second '>' to begin counting the name e.g
+				// <example>name</example>
+				// Would begin counting from >name
+				int nameBegin = FindNthChar(line, '>', 1) + 1;
+
+				string final = line.substr(nameBegin, line.length());
+
+				int symbol = final.find_first_of('<');
+				if (symbol != -1) {
+					final = final.substr(0, final.find_first_of('<'));
+				}
+
+				Replace(final, ',', ' ');
+
+				if (lineIndex < 4) {
+					csvFile << final << ", ";
+				}
+				else {
+					csvFile << final << endl;
+					lineIndex = 0;
+				}
+
+				lineIndex++;
+
+			}
+
+			/*continue;
+
+			if (line.find("<title>") != -1) {
+
+				int startIndex = line.find("<title>") + 5 + 2;
 
 				string final = line.substr(startIndex, line.length());
 				int symbol = final.find_first_of('<');
 				if (symbol != -1) {
 					final = final.substr(0, final.find_first_of('<'));
 				}
-				csvFile << "\"" << final << "\", ";
+
+				csvFile << final << ", ";
 
 			}
 			else if (line.find("<genre>") != -1) {
@@ -230,7 +290,7 @@ void XMLtoCSV(string source, string dest) {
 
 				csvFile << endl;
 
-			}
+			}*/
 
 		}
 
@@ -256,6 +316,9 @@ void CSVtoXML(string source, string dest) {
 
 	if (sourceFile) {
 
+		// Skip the first line since it's the header
+		getline(sourceFile, line);
+
 		cout << endl << "Generating " << dest << endl << endl;
 
 		ofstream xmlFile;
@@ -268,58 +331,58 @@ void CSVtoXML(string source, string dest) {
 
 			cout << "Line to read: " << line << endl;
 
-			if (line.find_first_of('\"') != -1) {
+			xmlFile << "\t<game>" << endl;
 
-				xmlFile << "\t<game>" << endl;
+			for (int i = 0; i < 5; i++) {
 
-				for (int i = 0; i < 5; i++) {
+				int endPoint = FindNthChar(line, ',', 1);
 
-					int firstQuotationMarkPosition = FindNthChar(line, '\"', 1);
-					string afterQuotationMark = line.substr(firstQuotationMarkPosition + 1, line.length());
+				string text = line.substr(0, endPoint);
 
-					int secondQuotationMarkPosition = FindNthChar(afterQuotationMark, '\"', 1);
-					string afterSecondQuotationMark = afterQuotationMark.substr(0, secondQuotationMarkPosition);
+				if (i >= 4) {
+					text = line;
+				}
 
-					switch (i) {
-						case 0:
-						{
-							xmlFile << "\t\t<name>" << afterSecondQuotationMark << "<\/name>" << endl;
-						}
-						break;
-						case 1:
-						{
-							xmlFile << "\t\t<genre>" << afterSecondQuotationMark << "<\/genre>" << endl;
-						}
-						break;
-						case 2:
-						{
-							xmlFile << "\t\t<platform>" << afterSecondQuotationMark << "<\/platform>" << endl;
-						}
-						break;
-						case 3:
-						{
-							xmlFile << "\t\t<releaseDate>" << afterSecondQuotationMark << "<\/releaseDate>" << endl;
-						}
-						break;
-						case 4:
-						default:
-						{
-							xmlFile << "\t\t<developer>" << afterSecondQuotationMark << "<\/developer>" << endl;
-						}
-						break;
+				switch (i) {
+					case 0:
+					{
+						xmlFile << "\t\t<title>" << text << "<\/title>" << endl;
 					}
+					break;
+					case 1:
+					{
+						xmlFile << "\t\t<genre>" << text << "<\/genre>" << endl;
+					}
+					break;
+					case 2:
+					{
+						xmlFile << "\t\t<platform>" << text << "<\/platform>" << endl;
+					}
+					break;
+					case 3:
+					{
+						xmlFile << "\t\t<releaseDate>" << text << "<\/releaseDate>" << endl;
+					}
+					break;
+					case 4:
+					default:
+					{
+						xmlFile << "\t\t<developer>" << text << "<\/developer>" << endl;
+					}
+					break;
+				}
 
-					cout << "Resulting string: " << afterSecondQuotationMark << endl;
+				cout << "Resulting string: " << text << endl;
 
-					line = line.substr(secondQuotationMarkPosition, line.length());
-					int thirdQuotationMarkPosition = FindNthChar(line, '\"', 2);
-					line = line.substr(thirdQuotationMarkPosition, line.length());
+				// Trail the comma and the space
+				int remainingComma = FindNthChar(line, ',', 1) + 2;
+				line = line.substr(remainingComma, line.length());
 
-				} // for loop
+			} // for loop
 
-				xmlFile << "\t</game>" << endl;
+			xmlFile << "\t</game>" << endl;
 
-			} // if
+			//} // if
 
 		} // while
 
@@ -338,9 +401,29 @@ void CSVtoXML(string source, string dest) {
 
 }
 
+int CharCount(string s, char c) {
+
+	int index = 0;
+
+	for (int i = 0; i < s.length(); i++) {
+
+		if (s[i] == c) {
+			index++;
+		}
+
+	}
+
+	return index;
+
+}
+
 int FindNthChar(string s, char c, int n) {
 
 	int index = 0;
+
+	if (n == 0) {
+		n = 1;
+	}
 
 	for (int i = 0; i < s.length(); i++) {
 
@@ -354,5 +437,11 @@ int FindNthChar(string s, char c, int n) {
 	}
 
 	return 0;
+
+}
+
+void Replace(string& s, char src, char dst) {
+
+	replace(s.begin(), s.end(), src, dst);
 
 }
