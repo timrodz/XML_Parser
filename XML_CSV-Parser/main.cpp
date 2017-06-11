@@ -6,10 +6,10 @@
 using namespace std;
 
 void FillInformation();
-void GenerateXML(ofstream &, string, string, string, string, string);
-void GenerateCSV(ofstream &, string, string, string, string, string);
+void ProcessFileLine(ofstream &, ofstream &, string, string, string, string, string);
 void XMLtoCSV(string, string);
 void CSVtoXML(string, string);
+void GenerateDefaults();
 
 int CharCount(string, char);
 int FindNthChar(string, char, int);
@@ -19,10 +19,10 @@ int main() {
 
 	int choice = -1;
 
-	while (choice != 4) {
+	while (choice != 5) {
 
 		system("cls");
-		cout << "Welcome to the XML parser\n1. Input information and genrate both XML and CSV files\n2. Convert XML to CSV\n3. Convert CSV to XML\n4. Quit\nOption: ";
+		cout << "Welcome to the XML parser\n1. Input information and genrate both XML and CSV files\n2. Convert XML to CSV\n3. Convert CSV to XML\n4. Generate default XML and CSV files\n5. Quit\nOption: ";
 		cin >> choice;
 
 		cin.clear();
@@ -68,9 +68,13 @@ int main() {
 			}
 			break;
 			case 4:
-				cout << "Quitting XML Parser" << endl;
-				break;
+			{
+				GenerateDefaults();
+			}
+			break;
+			case 5:
 			default:
+				cout << "Quitting XML Parser" << endl;
 				break;
 		}
 
@@ -120,8 +124,7 @@ void FillInformation() {
 		getline(cin, developer);
 		cin.clear();
 
-		GenerateXML(xmlFile, game, genre, platform, releaseDate, developer);
-		GenerateCSV(csvFile, game, genre, platform, releaseDate, developer);
+		ProcessFileLine(xmlFile, csvFile, game, genre, platform, releaseDate, developer);
 
 		while (true) {
 
@@ -134,7 +137,7 @@ void FillInformation() {
 			else {
 				if (choice == 'N' || choice == 'n') {
 					fillingInformation = false;
-					xmlFile << "<\/games>";
+					xmlFile << "</games>";
 					break;
 				}
 				else {
@@ -155,21 +158,54 @@ void FillInformation() {
 
 }
 
-void GenerateXML(ofstream &xmlFile, string game, string genre, string platform, string releaseDate, string developer) {
+void ProcessFileLine(ofstream &xmlFile, ofstream &csvFile, string game, string genre, string platform, string releaseDate, string developer) {
 
 	xmlFile << "\t<game>" << endl;
-	xmlFile << "\t\t<title>" << game << "<\ / title>" << endl;
-	xmlFile << "\t\t<genre>" << genre << "<\/genre>" << endl;
-	xmlFile << "\t\t<platform>" << platform << "<\/platform>" << endl;
-	xmlFile << "\t\t<releaseDate>" << releaseDate << "<\/releaseDate>" << endl;
-	xmlFile << "\t\t<developer>" << developer << "<\/developer>" << endl;
-	xmlFile << "\t<\/game>" << endl;
+	xmlFile << "\t\t<title>" << game << "</title>" << endl;
+	xmlFile << "\t\t<genre>" << genre << "</genre>" << endl;
+	xmlFile << "\t\t<platform>" << platform << "</platform>" << endl;
+	xmlFile << "\t\t<releaseDate>" << releaseDate << "</releaseDate>" << endl;
+	xmlFile << "\t\t<developer>" << developer << "</developer>" << endl;
+	xmlFile << "\t</game>" << endl;
 
-}
-
-void GenerateCSV(ofstream &csvFile, string game, string genre, string platform, string releaseDate, string developer) {
+	// Replace commas for spaces
+	Replace(game, ',', ' ');
+	Replace(genre, ',', ' ');
+	Replace(platform, ',', ' ');
+	Replace(releaseDate, ',', ' ');
+	Replace(developer, ',', ' ');
 
 	csvFile << game << ", " << genre << ", " << platform << ", " << releaseDate << ", " << developer << endl;
+
+}
+ 
+void GenerateDefaults() {
+
+	cout << endl << "Generating default files" << endl;
+
+	ofstream xmlFile;
+	xmlFile.open("xmlFileDefault.xml");
+
+	xmlFile << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
+	xmlFile << "<games>" << endl;
+	
+	ofstream csvFile;
+	csvFile.open("csvFileDefault.csv");
+
+	csvFile << "Game name, Genre, Platform, Release date, Developer" << endl;
+
+	ProcessFileLine(xmlFile, csvFile, "Donkey Kong Country", "Action, Adventure, Platform", "SNES", "11/21/1994", "Rare");
+	ProcessFileLine(xmlFile, csvFile, "Fallout: New Vegas", "Action, Role Playing, Shooter", "PC", "19/10/2010", "Obsidian Entertainment");
+	ProcessFileLine(xmlFile, csvFile, "Diablo III", "Adventure, Role Playing", "PC", "15/05/2012", "Blizzard Entertainment");
+	ProcessFileLine(xmlFile, csvFile, "Dead Island", "Shooter", "PC", "09/09/2011", "Techland");
+	ProcessFileLine(xmlFile, csvFile, "Saints Row: The Third", "Action, Sandbox, Shooter", "PC", "01/11/2011", "Volition");
+
+	xmlFile << "</games>";
+
+	cout << "Success! Press enter to continue> " << endl;
+
+	cin.clear();
+	cin.ignore(1000, '\n');
 
 }
 
@@ -222,75 +258,6 @@ void XMLtoCSV(string source, string dest) {
 				lineIndex++;
 
 			}
-
-			/*continue;
-
-			if (line.find("<title>") != -1) {
-
-				int startIndex = line.find("<title>") + 5 + 2;
-
-				string final = line.substr(startIndex, line.length());
-				int symbol = final.find_first_of('<');
-				if (symbol != -1) {
-					final = final.substr(0, final.find_first_of('<'));
-				}
-
-				csvFile << final << ", ";
-
-			}
-			else if (line.find("<genre>") != -1) {
-
-				int startIndex = line.find("<genre>") + 5 + 2;
-
-				string final = line.substr(startIndex, line.length());
-				int symbol = final.find_first_of('<');
-				if (symbol != -1) {
-					final = final.substr(0, final.find_first_of('<'));
-				}
-				csvFile << "\"" << final << "\", ";
-
-			}
-			else if (line.find("<platform>") != -1) {
-
-				int startIndex = line.find("<platform>") + 8 + 2;
-
-				string final = line.substr(startIndex, line.length());
-				int symbol = final.find_first_of('<');
-				if (symbol != -1) {
-					final = final.substr(0, final.find_first_of('<'));
-				}
-				csvFile << "\"" << final << "\", ";
-
-			}
-			else if (line.find("<releaseDate>") != -1) {
-
-				int startIndex = line.find("<releaseDate>") + 11 + 2;
-
-				string final = line.substr(startIndex, line.length());
-				int symbol = final.find_first_of('<');
-				if (symbol != -1) {
-					final = final.substr(0, final.find_first_of('<'));
-				}
-				csvFile << "\"" << final << "\", ";
-
-			}
-			else if (line.find("<developer>") != -1) {
-
-				int startIndex = line.find("<developer>") + 9 + 2;
-
-				string final = line.substr(startIndex, line.length());
-				int symbol = final.find_first_of('<');
-				if (symbol != -1) {
-					final = final.substr(0, final.find_first_of('<'));
-				}
-				csvFile << "\"" << final << "\"";
-
-			}
-			else if (line.find("<\/game>") != -1) {
-
-				csvFile << endl;
-
-			}*/
 
 		}
 
@@ -346,28 +313,28 @@ void CSVtoXML(string source, string dest) {
 				switch (i) {
 					case 0:
 					{
-						xmlFile << "\t\t<title>" << text << "<\/title>" << endl;
+						xmlFile << "\t\t<title>" << text << "</title>" << endl;
 					}
 					break;
 					case 1:
 					{
-						xmlFile << "\t\t<genre>" << text << "<\/genre>" << endl;
+						xmlFile << "\t\t<genre>" << text << "</genre>" << endl;
 					}
 					break;
 					case 2:
 					{
-						xmlFile << "\t\t<platform>" << text << "<\/platform>" << endl;
+						xmlFile << "\t\t<platform>" << text << "</platform>" << endl;
 					}
 					break;
 					case 3:
 					{
-						xmlFile << "\t\t<releaseDate>" << text << "<\/releaseDate>" << endl;
+						xmlFile << "\t\t<releaseDate>" << text << "</releaseDate>" << endl;
 					}
 					break;
 					case 4:
 					default:
 					{
-						xmlFile << "\t\t<developer>" << text << "<\/developer>" << endl;
+						xmlFile << "\t\t<developer>" << text << "</developer>" << endl;
 					}
 					break;
 				}
@@ -382,11 +349,9 @@ void CSVtoXML(string source, string dest) {
 
 			xmlFile << "\t</game>" << endl;
 
-			//} // if
-
 		} // while
 
-		xmlFile << "<\/games>";
+		xmlFile << "</games>";
 
 		cout << "Parsing of " + source + " to " + dest + " 100% successful!";
 
@@ -405,7 +370,7 @@ int CharCount(string s, char c) {
 
 	int index = 0;
 
-	for (int i = 0; i < s.length(); i++) {
+	for (unsigned int i = 0; i < s.length(); i++) {
 
 		if (s[i] == c) {
 			index++;
@@ -425,7 +390,7 @@ int FindNthChar(string s, char c, int n) {
 		n = 1;
 	}
 
-	for (int i = 0; i < s.length(); i++) {
+	for (unsigned int i = 0; i < s.length(); i++) {
 
 		if (s[i] == c) {
 			index++;

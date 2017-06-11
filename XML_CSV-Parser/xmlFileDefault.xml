@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<games>
+	<game>
+		<title>Donkey Kong Country</title>
+		<genre>Action, Adventure, Platform</genre>
+		<platform>SNES</platform>
+		<releaseDate>11/21/1994</releaseDate>
+		<developer>Rare</developer>
+	</game>
+	<game>
+		<title>Fallout: New Vegas</title>
+		<genre>Action, Role Playing, Shooter</genre>
+		<platform>PC</platform>
+		<releaseDate>19/10/2010</releaseDate>
+		<developer>Obsidian Entertainment</developer>
+	</game>
+	<game>
+		<title>Diablo III</title>
+		<genre>Adventure, Role Playing</genre>
+		<platform>PC</platform>
+		<releaseDate>15/05/2012</releaseDate>
+		<developer>Blizzard Entertainment</developer>
+	</game>
+	<game>
+		<title>Dead Island</title>
+		<genre>Shooter</genre>
+		<platform>PC</platform>
+		<releaseDate>09/09/2011</releaseDate>
+		<developer>Techland</developer>
+	</game>
+	<game>
+		<title>Saints Row: The Third</title>
+		<genre>Action, Sandbox, Shooter</genre>
+		<platform>PC</platform>
+		<releaseDate>01/11/2011</releaseDate>
+		<developer>Volition</developer>
+	</game>
+</games>
