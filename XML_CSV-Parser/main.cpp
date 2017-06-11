@@ -28,13 +28,15 @@ int main() {
 		cin.clear();
 		cin.ignore(1000, '\n');
 
+		system("cls");
+
 		switch (choice) {
 			case 1:
 				FillInformation();
 				break;
 			case 2:
 			{
-				cout << "Please input the file name: ";
+				cout << "Please input the XML file name: ";
 				string file;
 				getline(cin, file);
 
@@ -52,7 +54,7 @@ int main() {
 			break;
 			case 3:
 			{
-				cout << "Please input the file name: ";
+				cout << "Please input the CSV file name: ";
 				string file;
 				getline(cin, file);
 
@@ -178,17 +180,17 @@ void ProcessFileLine(ofstream &xmlFile, ofstream &csvFile, string game, string g
 	csvFile << game << ", " << genre << ", " << platform << ", " << releaseDate << ", " << developer << endl;
 
 }
- 
+
 void GenerateDefaults() {
 
-	cout << endl << "Generating default files" << endl;
+	cout << "Generating default files" << endl;
 
 	ofstream xmlFile;
 	xmlFile.open("xmlFileDefault.xml");
 
 	xmlFile << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
 	xmlFile << "<games>" << endl;
-	
+
 	ofstream csvFile;
 	csvFile.open("csvFileDefault.csv");
 
@@ -248,14 +250,17 @@ void XMLtoCSV(string source, string dest) {
 				Replace(final, ',', ' ');
 
 				if (lineIndex < 4) {
+
 					csvFile << final << ", ";
+					lineIndex++;
+
 				}
 				else {
+
 					csvFile << final << endl;
 					lineIndex = 0;
-				}
 
-				lineIndex++;
+				}
 
 			}
 
@@ -296,7 +301,7 @@ void CSVtoXML(string source, string dest) {
 
 		while (getline(sourceFile, line)) {
 
-			cout << "Line to read: " << line << endl;
+			//cout << "Line to read: " << line << endl;
 
 			xmlFile << "\t<game>" << endl;
 
@@ -339,7 +344,7 @@ void CSVtoXML(string source, string dest) {
 					break;
 				}
 
-				cout << "Resulting string: " << text << endl;
+				//cout << "Resulting string: " << text << endl;
 
 				// Trail the comma and the space
 				int remainingComma = FindNthChar(line, ',', 1) + 2;
